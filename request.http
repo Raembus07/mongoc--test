@@ -1,0 +1,36 @@
+### check test
+http://localhost:5001/check
+
+### Get all Movies
+GET http://localhost:5001/api/movies
+
+### Get Movie by ID
+GET http://localhost:5001/api/movies/1
+Content-Type: application/json
+
+### Insert Movie
+POST http://localhost:5001/api/movies
+Content-Type: application/json
+
+{
+  "id": "1",
+  "title": "Inception",
+  "year": 2010,
+  "summary": "A thief who steals corporate secrets through the use of dream-sharing technology.",
+  "actors": ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Ellen Page"]
+}
+
+### Update Movie
+PUT http://localhost:5001/api/movies/1
+Content-Type: application/json
+
+{
+  "title": "Inception Updated",
+  "year": 2010,
+  "summary": "Updated summary for Inception.",
+  "actors": ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Ellen Page"]
+}
+
+### Delete Movie
+DELETE http://localhost:5001/api/movies/1
+Content-Type: application/json

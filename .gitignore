@@ -1,0 +1,41 @@
+# .gitignore for .NET (ASP.NET Core, C#)
+
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Docker
+**/docker-compose.override.yml
+
+# Others
+*.swp
+*.tmp
+*.bak
+*.ncrunch*
+_ReSharper*/
+
+# Publish
+/app/publish/
+
+# Secrets (if any)
+secrets.json

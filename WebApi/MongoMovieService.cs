@@ -3,18 +3,22 @@ using MongoDB.Driver;
 
 public class MongoMovieService : IMovieService
 {
-    List<Movie> movies = new List<Movie>();
 
-    private readonly IOptions<DatabaseSettings> _options;
+    private readonly IOptions<DatabaseSettings> options;
+    private readonly IMongoCollection<Movie> movieCollection;
 
     public MongoMovieService(IOptions<DatabaseSettings> options)
     {
-        _options = options;
+        this.options = options;
+        var mongoClient = new MongoClient(options.Value.ConnectionString);
+        var database = mongoClient.GetDatabase("mydatabase");
+        var movieCollection = database.GetCollection<Movie>("movies");
+        this.movieCollection = movieCollection;
     }
 
     public IResult Check()
     {
-        var mongoDbConnectionString = _options.Value.ConnectionString;
+        var mongoDbConnectionString = options.Value.ConnectionString;
 
         try
         {
@@ -39,16 +43,17 @@ public class MongoMovieService : IMovieService
 
     public IResult Create(Movie movie)
     {
-        if (movies.Any(m => m.Id == movie.Id))
+        if (string.IsNullOrEmpty(movie.Id) || movieCollection.Find(m => m.Id == movie.Id).Any())
         {
-            return Results.Conflict("Movie with the same ID already exists.");
+            return Results.Conflict("Movie with this ID already exists.");
         }
-        movies.Add(movie);
+        movieCollection.InsertOne(movie);
         return Results.Ok(movie);
     }
 
     public IResult Get()
     {
+        var movies = movieCollection.Find(_ => true).ToList();
         return Results.Ok(movies);
     }
 
@@ -58,7 +63,7 @@ public class MongoMovieService : IMovieService
         {
             return Results.NotFound("Movie not found.");
         }
-        var movie = movies.FirstOrDefault(m => m.Id == id);
+        var movie = movieCollection.Find(m => m.Id == id).FirstOrDefault();
         if (movie == null)
         {
             return Results.NotFound("Movie not found.");
@@ -68,37 +73,29 @@ public class MongoMovieService : IMovieService
 
     public IResult Update(string id, Movie movie)
     {
-        if (string.IsNullOrEmpty(id) || movie == null)
+        if (string.IsNullOrEmpty(id))
         {
             return Results.NotFound("Movie not found.");
         }
-
-        var existingMovie = movies.FirstOrDefault(m => m.Id == id);
-        if (existingMovie == null)
+        var result = movieCollection.ReplaceOne(m => m.Id == id, movie);
+        if (result.MatchedCount == 0)
         {
             return Results.NotFound("Movie not found.");
         }
-
-        existingMovie.Title = movie.Title;
-        existingMovie.Year = movie.Year;
-        existingMovie.Summary = movie.Summary;
-        existingMovie.Actors = movie.Actors;
-
-        return Results.Ok(existingMovie);
+        return Results.Ok(movie);
     }
-    
+
     public IResult Remove(string id)
     {
         if (string.IsNullOrEmpty(id))
         {
             return Results.NotFound("Movie not found.");
         }
-        var movie = movies.FirstOrDefault(m => m.Id == id);
-        if (movie == null)
+        var result = movieCollection.DeleteOne(m => m.Id == id);
+        if (result.DeletedCount == 0)
         {
             return Results.NotFound("Movie not found.");
         }
-        movies.Remove(movie);
         return Results.Ok("Movie deleted successfully.");
     }
 }
